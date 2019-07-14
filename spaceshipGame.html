@@ -1,0 +1,226 @@
+<!- Dennis Stephens -->
+
+<!DOCTYPE html>
+<html>
+	<head>
+<style>
+table, td {
+	border: 1px solid black;
+}
+</style>
+</head>
+<body onload="createGameBoard()">
+	
+	<button onclick="reset()">Reset</button>
+	<button onclick="move()">Move</button>
+	<table id="gameBoard">
+		<tr>
+			<td colspan="2" align="center">Xalakai</td>
+			<td colspan="2" align="center">Nonkio</td>
+		<tr>
+	</table>
+	Xalakai:
+	<p id="xalakaiLog">Awaiting your choice.</p>
+	Nonkio:
+	<p id="nonkioLog">Nonkio's waiting his turn.</p>
+	<script>
+
+	var boardArray =[[],[]];
+	
+	// Used names so I dont have magic numbers for the arrays.
+	var shipNames = ["Scout","Passenger","Scout","Passenger"]
+	var xScout = 0;
+	var xPassenger = 1;
+	var nScout = 2;
+	var nPassenger = 3;
+	
+	var roll;
+	var passengerFinished = false;
+	var scoutFinished = false;
+
+	var gameboard = document.getElementById("gameBoard");
+
+	function createGameBoard() {
+		
+		for (i=0;i<20;i++) {
+			
+			var row = gameBoard.insertRow(-1);
+			
+			for (j=0;j<4;j++) {
+			
+				var cell = row.insertCell(-1);
+				cell.innerHTML = "EMPTY";
+			}
+		}
+
+		for (i=0;i<4;i++){
+
+			boardArray[i] = [];
+			for (j=0;j<20;j++) {
+
+				boardArray[i][j] = 0;
+
+			}
+		}
+		
+
+		for (i=0;i<4;i++){
+
+			boardArray[i][2] = 1;
+			gameBoard.rows[2].cells[i].innerHTML = shipNames[i];	
+		}
+	}
+
+	function reset() {
+
+		for(i=0;i<4;i++){
+			for(j=2;j<=21;j++) {
+				gameBoard.rows[j].cells[i].innerHTML = "EMPTY";
+				boardArray[i][j] = 0;
+
+			}	
+		}
+
+		for (i=0;i<4;i++){
+
+			boardArray[i][2] = 1;
+			gameBoard.rows[2].cells[i].innerHTML = shipNames[i];	
+		}
+
+		passengerFinished = false;
+		scoutFinished = false;
+	}
+
+	function move() {
+
+		roll = Math.floor(Math.random() * (6 - 1 + 1)) + 1;
+		document.getElementById("xalakaiLog").innerHTML = "You rolled a " + roll;
+	
+		var scoutPos = boardArray[xScout].indexOf(1);
+		var passengerPos = boardArray[xPassenger].indexOf(1);
+
+		gameBoard.rows[scoutPos].cells[xScout].addEventListener("click", moveScout);	
+		gameBoard.rows[passengerPos].cells[xPassenger].addEventListener("click", movePassenger);	
+
+	}
+
+	function moveScout(){
+
+		var currentPos = boardArray[xScout].indexOf(1);
+
+		if (currentPos+roll <= 20 ) {
+		
+			boardArray[xScout][currentPos] = 0;
+			gameBoard.rows[currentPos].cells[xScout].innerHTML = "EMPTY";
+
+			boardArray[xScout][currentPos+roll] = 1;
+			gameBoard.rows[currentPos+roll].cells[xScout].innerHTML = shipNames[xScout];
+
+			document.getElementById("xalakaiLog").innerHTML = "You moved your Scout " + roll + " space(s)";
+
+		}
+		else {
+				
+			boardArray[xScout][currentPos] = 0;
+			gameBoard.rows[currentPos].cells[xScout].innerHTML = "EMPTY";
+		
+			boardArray[xScout][19] = 1;
+			gameBoard.rows[21].cells[xScout].innerHTML = shipNames[xScout];
+
+			document.getElementById("xalakaiLog").innerHTML = "Your Scout made it to the end!";
+		}
+
+		gameBoard.rows[currentPos].cells[xScout].removeEventListener("click", moveScout);
+		gameBoard.rows[boardArray[xPassenger].indexOf(1)].cells[xPassenger].removeEventListener("click", movePassenger);
+
+		if (boardArray[xScout][19] == 1 && boardArray[xPassenger][19] == 1)
+			document.getElementById("xalakaiLog").innerHTML = "You won!!!!";
+		
+		nonkiosTurn();
+	}
+	
+	function movePassenger(){
+
+		var currentPos = boardArray[xPassenger].indexOf(1);
+
+		if (currentPos+roll <= 20) {
+			
+			boardArray[xPassenger][currentPos] = 0;
+			gameBoard.rows[currentPos].cells[xPassenger].innerHTML = "EMPTY";
+
+			boardArray[xPassenger][currentPos+roll] = 1;
+			gameBoard.rows[currentPos+roll].cells[xPassenger].innerHTML = shipNames[xPassenger];
+
+			document.getElementById("xalakaiLog").innerHTML = "You moved your Passenger ship " + roll + " space(s)";
+		
+		}
+		else {
+
+			boardArray[xPassenger][currentPos] = 0;
+			gameBoard.rows[currentPos].cells[xPassenger].innerHTML = "EMPTY";
+		
+			boardArray[xPassenger][19] = 1;
+			gameBoard.rows[21].cells[xPassenger].innerHTML = shipNames[xPassenger];
+
+			document.getElementById("xalakaiLog").innerHTML = "Your Passenger ship made it to the end!";
+		}
+		gameBoard.rows[currentPos].cells[xPassenger].removeEventListener("click", movePassenger);
+		gameBoard.rows[boardArray[xScout].indexOf(1)].cells[xScout].removeEventListener("click", moveScout);
+
+		if (boardArray[xScout][19] == 1 && boardArray[xPassenger][19] == 1)
+			document.getElementById("xalakaiLog").innerHTML = "You won!!!!";
+
+    		nonkiosTurn();
+	}
+
+	function nonkiosTurn() {
+
+		roll = Math.floor(Math.random() * (6 - 1 + 1)) + 1;
+
+		if (scoutFinished == true)
+			moveNonkio(nPassenger);
+		
+		else  
+			moveNonkio(nScout);
+		
+	}
+
+	function moveNonkio(ship) {
+	
+		var currentPos = boardArray[ship].indexOf(1);
+
+		if (currentPos+roll <= 20) {
+			
+			boardArray[ship][currentPos] = 0;
+			gameBoard.rows[currentPos].cells[ship].innerHTML = "EMPTY";
+
+			boardArray[ship][currentPos+roll] = 1;
+			gameBoard.rows[currentPos+roll].cells[ship].innerHTML = shipNames[ship];
+
+			document.getElementById("nonkioLog").innerHTML = "Nonkio moved his " + shipNames[ship] + " ship " + roll + " space(s)";
+		
+		}
+		else {
+
+			boardArray[ship][currentPos] = 0;
+			gameBoard.rows[currentPos].cells[ship].innerHTML = "EMPTY";
+		
+			boardArray[ship][19] = 1;
+			gameBoard.rows[21].cells[ship].innerHTML = shipNames[ship];
+
+			document.getElementById("nonkioLog").innerHTML = "Nonkio's " + shipNames[ship] + " ship made it to the end!";
+    			
+			if (ship == nScout)
+    				scoutFinished = true;
+			else
+    				passengerFinished = true;
+			
+		}
+		
+		if (boardArray[nScout][19] == 1 && boardArray[nPassenger][19] == 1)
+			document.getElementById("nonkioLog").innerHTML = "Nonkio won. :(";
+	}
+	</script>
+
+</body>
+</html>
